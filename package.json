@@ -1,0 +1,38 @@
+{
+  "name": "my-tomato-clock",
+  "version": "1.1.2",
+  "description": "tomatoclock",
+  "main": "main.js",
+  "author": "samspend",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir",
+    "build:android": "electron-builder --build --android"
+  },
+  "author": "samspend",
+  "devDependencies": {
+    "electron": "v38.2.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+  "appId": "com.yourcompany.yourapp",
+  "productName": "YourApp",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "main.js",
+    "index.html",
+    "assets/**/*",
+    "node_modules/**/*"
+  ],
+  "win": {
+    "target": "nsis"
+  },
+  "android": {
+    "target": "apk", 
+    "icon": "assets/android-icon.png" 
+  }
+  }
+}

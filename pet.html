@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄钟桌宠</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-app-region: drag;
+        }
+        
+        body {
+            width: 200px;
+            height: 250px;
+            background: transparent;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            cursor: move;
+            position: relative;
+        }
+        
+        .pet-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7); /* 改为半透明黑色背景 */
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(102, 126, 234, 0.8);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px); /* 毛玻璃效果 */
+        }
+        
+        .plant-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .soil {
+            width: 80px;
+            height: 15px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .plant-stage {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+            opacity: 0;
+            z-index: 2;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* 种子阶段 - 最小 */
+        #stage-seed {
+            max-width: 90px;
+            max-height: 90px;
+            bottom: 8px;
+        }
+
+        /* 发芽阶段 - 稍大 */
+        #stage-sprout {
+            max-width: 180px;
+            max-height: 180px;
+            bottom: 6px;
+        }
+
+        /* 小苗阶段 - 中等 */
+        #stage-small {
+            max-width: 270px;
+            max-height: 270px;
+            bottom: 5px;
+        }
+
+        /* 中苗阶段 - 较大 */
+        #stage-medium {
+            max-width: 360px;
+            max-height: 360px;
+            bottom: 3px;
+        }
+
+        /* 成熟阶段 - 最大 */
+        #stage-mature {
+            max-width: 450px;
+            max-height: 450px;
+            bottom: 0px;
+        }
+
+        .plant-stage.active {
+            opacity: 1;
+        }
+
+        .plant-stage img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: all 0.5s ease;
+        }
+        
+        .timer-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white; /* 改为白色文字 */
+            margin: 5px 0;
+            text-align: center;
+            -webkit-app-region: no-drag;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .plant-info {
+            font-size: 0.9em;
+            color: #ddd; /* 改为浅灰色 */
+            text-align: center;
+            margin-bottom: 5px;
+            -webkit-app-region: no-drag;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .progress-bar {
+            width: 80%;
+            height: 6px;
+            background: rgba(255,255,255,0.3); /* 半透明背景 */
+            border-radius: 3px;
+            margin: 5px 0;
+            overflow: hidden;
+            -webkit-app-region: no-drag;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .status-indicator {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 3px;
+            -webkit-app-region: no-drag;
+            font-weight: bold;
+        }
+        
+        .status-working {
+            background: rgba(255, 234, 167, 0.9);
+            color: #e17055;
+        }
+        
+        .status-breaking {
+            background: rgba(129, 236, 236, 0.9);
+            color: #00b894;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            color: white;
+            -webkit-app-region: no-drag;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+        
+        .plant-stage.active {
+            animation: breathe 3s ease-in-out infinite;
+        }
+        
+        .default-plant {
+            font-size: 4em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="pet-container">
+        <button class="close-btn" id="closePet">×</button>
+        
+        <div class="plant-animation">
+            <div class="soil"></div>
+            <div class="default-plant" id="defaultPlant">🍅</div>
+            <div class="plant-stage" id="stage-seed">
+                <img src="./images/plants/tomato-seed.png" alt="种子阶段" onerror="hideImage(this)">
+            </div>
+            <div class="plant-stage" id="stage-sprout">
+                <img src="./images/plants/tomato-sprout.png" alt="发芽阶段" onerror="hideImage(this)">
+            </div>
+            <div class="plant-stage" id="stage-small">
+                <img src="./images/plants/tomato-small.png" alt="小苗阶段" onerror="hideImage(this)">
+            </div>
+            <div class="plant-stage" id="stage-medium">
+                <img src="./images/plants/tomato-medium.png" alt="中苗阶段" onerror="hideImage(this)">
+            </div>
+            <div class="plant-stage" id="stage-mature">
+                <img src="./images/plants/tomato-mature.png" alt="成熟阶段" onerror="hideImage(this)">
+            </div>
+        </div>
+        
+        <div class="timer-display" id="petTimer">25:00</div>
+        <div class="plant-info" id="petPlantInfo">番茄 - 0%</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="petProgress" style="width: 0%"></div>
+        </div>
+        
+        <div class="status-indicator status-working" id="petStatus">专注中</div>
+    </div>
+
+    <script>
+        // 植物图标映射
+        const plantIcons = {
+            tomato: '🍅',
+            carrot: '🥕',
+            broccoli: '🥦',
+            eggplant: '🍆',
+            corn: '🌽',
+            watermelon: '🍉',
+            strawberry: '🍓',
+            pepper: '🫑'
+        };
+
+        // 图片加载失败处理
+        function hideImage(img) {
+            img.style.display = 'none';
+        }
+        
+        // 初始化
+        function init() {
+            // 关闭按钮事件 - 修复版本
+            document.getElementById('closePet').addEventListener('click', () => {
+                // 直接向主进程发送消息请求隐藏窗口
+                if (typeof require !== 'undefined') {
+                    try {
+                        const { ipcRenderer } = require('electron');
+                        ipcRenderer.send('hide-pet-window');
+                    } catch (error) {
+                        console.log('关闭按钮错误:', error);
+                    }
+                }
+            });
+            
+            // 监听状态更新
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.on('pet-status-update', (event, data) => {
+                    updatePetDisplay(data);
+                });
+            }
+            
+            // 初始显示
+            updatePetDisplay({
+                timer: '25:00',
+                plantType: 'tomato',
+                plantName: '番茄',
+                growthPercent: 0,
+                isWorking: true
+            });
+        }
+        
+        // 更新桌宠显示
+        function updatePetDisplay(data) {
+            if (data.timer) {
+                document.getElementById('petTimer').textContent = data.timer;
+            }
+            
+            if (data.plantType) {
+                updatePlantDisplay(data);
+            }
+            
+            if (data.isWorking !== undefined) {
+                const statusElement = document.getElementById('petStatus');
+                if (data.isWorking) {
+                    statusElement.textContent = '专注中';
+                    statusElement.className = 'status-indicator status-working';
+                } else {
+                    statusElement.textContent = '休息中';
+                    statusElement.className = 'status-indicator status-breaking';
+                }
+            }
+        }
+        
+        // 更新植物显示
+        function updatePlantDisplay(data) {
+            // 更新默认植物图标
+            const defaultPlant = document.getElementById('defaultPlant');
+            defaultPlant.textContent = plantIcons[data.plantType] || '🍅';
+            
+            // 更新植物信息
+            document.getElementById('petPlantInfo').textContent = 
+                `${data.plantName} - ${Math.round(data.growthPercent || 0)}%`;
+            
+            // 更新进度条
+            const progressElement = document.getElementById('petProgress');
+            progressElement.style.width = `${data.growthPercent || 0}%`;
+            
+            // 设置进度条颜色
+            if (data.plantColor && data.fruitColor) {
+                progressElement.style.background = `linear-gradient(90deg, ${data.plantColor}, ${data.fruitColor})`;
+            } else {
+                progressElement.style.background = '#667eea';
+            }
+            
+            // 更新植物阶段
+            updatePlantStage(data.growthPercent || 0, data.plantType);
+        }
+        
+        // 更新植物生长阶段
+        function updatePlantStage(percent, plantType) {
+            // 隐藏所有阶段
+            const stages = ['seed', 'sprout', 'small', 'medium', 'mature'];
+            stages.forEach(stage => {
+                const element = document.getElementById(`stage-${stage}`);
+                if (element) {
+                    element.classList.remove('active');
+                    // 更新图片源
+                    const img = element.querySelector('img');
+                    if (img) {
+                        img.src = `./images/plants/${plantType}-${stage}.png`;
+                        img.style.display = 'block'; // 重置显示
+                    }
+                }
+            });
+            
+            // 根据进度显示相应阶段
+            let activeStage = 'seed';
+            if (percent >= 80) {
+                activeStage = 'mature';
+            } else if (percent >= 60) {
+                activeStage = 'medium';
+            } else if (percent >= 40) {
+                activeStage = 'small';
+            } else if (percent >= 20) {
+                activeStage = 'sprout';
+            }
+            
+            const activeElement = document.getElementById(`stage-${activeStage}`);
+            const defaultPlant = document.getElementById('defaultPlant');
+            
+            if (activeElement) {
+                activeElement.classList.add('active');
+                defaultPlant.style.display = 'none';
+            } else {
+                defaultPlant.style.display = 'block';
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

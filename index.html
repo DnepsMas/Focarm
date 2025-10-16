@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄钟++ - 多模式版</title>
+    <style>
+        /* 用户提供的CSS内容 */
+        body {
+            font-family: sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+        }
+        #timer {
+            font-size: 5em;
+            margin: 20px;
+            color: #e74c3c;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        /* 原HTML的复杂样式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        body.working {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        body.breaking {
+            background: linear-gradient(135deg, #1dd1a1 0%, #10ac84 100%);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 30px 30px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 900px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            
+            /* 彻底隐藏滚动条 */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* 隐藏所有滚动条但保留滚动功能 */
+        .container::-webkit-scrollbar,
+        .collection-grid::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar,
+        .plan-list::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        /* 针对Firefox等浏览器 */
+        .container {
+            scrollbar-width: none;
+        }
+
+        .collection-grid,
+        .history-list,
+        .plan-list {
+            scrollbar-width: none;
+        }
+
+        /* 菜单栏样式 */
+        .menu-bar {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: none; /* 隐藏原有按钮 */
+        }
+
+        .menu-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        /* 菜单图标按钮样式 */
+        .menu-icon-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+        }
+
+        .menu-icon-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 下拉菜单样式 */
+        .dropdown-menu {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            min-width: 180px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            visibility: hidden;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .menu-item.active {
+            background: #e3f2fd;
+        }
+
+        .menu-item span {
+            font-size: 0.95em;
+            color: #2d3436;
+            font-weight: 500;
+        }
+
+        h1 {
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        #task {
+            width: 80%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        #task:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #timer {
+            font-size: 5em;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #2d3436;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .buttons {
+            margin: 25px 0;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            margin: 0 10px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        #startPauseBtn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        #startPauseBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        #resetBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        #countDisplay {
+            font-size: 1.2em;
+            color: #636e72;
+            margin-top: 20px;
+        }
+
+        #count {
+            font-weight: bold;
+            color: #e84393;
+            font-size: 1.4em;
+        }
+
+        .status {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .status.work {
+            background: #ffeaa7;
+            color: #e17055;
+        }
+
+        .status.break {
+            background: #81ecec;
+            color: #00b894;
+        }
+
+        .shortcut-hint {
+            font-size: 0.9em;
+            color: #636e72;
+            margin-top: 15px;
+        }
+
+        /* 设置按钮样式 - 往右移动 */
+        #settingsBtn {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #636e72;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #settingsBtn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #2d3436;
+        }
+
+        /* 设置面板样式 */
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            min-width: 280px;
+        }
+
+        .settings-panel h3 {
+            margin-top: 0;
+            color: #2d3436;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+
+        .mode-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .mode-tab.active {
+            border-bottom: 2px solid #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #636e72;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .setting-hint {
+            font-size: 0.8em;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        .setting-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .setting-buttons button {
+            padding: 8px 15px;
+            margin: 0;
+        }
+
+        #saveSettings {
+            background: #00b894;
+            color: white;
+        }
+
+        #cancelSettings {
+            background: #dfe6e9;
+            color: #2d3436;
+        }
+
+        /* 遮罩层 */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+
+        /* 多植物系统样式 */
+        .plant-system {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .plant-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .plant-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+
+        .plant-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .plant-icon {
+            font-size: 3em;
+            display: block;
+        }
+
+        .plant-details {
+            text-align: left;
+        }
+
+        .plant-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2d3436;
+        }
+
+        .plant-time {
+            color: #636e72;
+            font-size: 0.9em;
+        }
+
+        .plant-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .soil {
+            width: 120px;
+            height: 25px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .plant-stage {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+            opacity: 0;
+            z-index: 2;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* 种子阶段 - 最小 */
+        #stage-seed {
+            max-width: 40px;
+            max-height: 40px;
+            bottom: 15px;
+        }
+
+        /* 发芽阶段 - 稍大 */
+        #stage-sprout {
+            max-width: 60px;
+            max-height: 60px;
+            bottom: 12px;
+        }
+
+        /* 小苗阶段 - 中等 */
+        #stage-small {
+            max-width: 80px;
+            max-height: 80px;
+            bottom: 10px;
+        }
+
+        /* 中苗阶段 - 较大 */
+        #stage-medium {
+            max-width: 100px;
+            max-height: 100px;
+            bottom: 8px;
+        }
+
+        /* 成熟阶段 - 最大 */
+        #stage-mature {
+            max-width: 120px;
+            max-height: 120px;
+            bottom: 5px;
+        }
+
+        .plant-stage.active {
+            opacity: 1;
+        }
+
+        .plant-stage img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: all 0.5s ease;
+        }
+
+        .growth-info {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .growth-bar {
+            width: 100%;
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .growth-progress {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .collection-section {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .collection-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2d3436;
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+        }
+
+        .collection-item {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .collection-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .new-plant-btn {
+            background: #3498db;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        /* 历史记录样式 */
+        .history-section {
+            margin: 40px 0 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            display: none;
+        }
+
+        .history-list {
+            margin-top: 15px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-task {
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .history-time {
+            color: #636e72;
+            font-size: 0.9em;
+        }
+
+        .history-date {
+            font-size: 0.8em;
+            color: #95a5a6;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .clear-history {
+            background: #e74c3c;
+            color: white;
+            margin-top: 15px;
+        }
+
+        /* 托盘图标样式 */
+        .tray-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tray-notification.show {
+            opacity: 1;
+        }
+
+        /* 进度指示器 */
+        .progress-indicator {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #636e72;
+        }
+        
+        /* 收获统计 */
+        .harvest-stats {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        /* 品质样式 */
+        .quality-super {
+            color: #FFD700 !important;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+        }
+        
+        .quality-rare {
+            color: #C0C0C0 !important;
+            font-weight: bold;
+        }
+        
+        .quality-normal {
+            color: white !important;
+        }
+
+        /* 计划页面样式 */
+        .plan-section {
+            margin: 40px 0 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            display: none;
+        }
+
+        .plan-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #planInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        #planInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #addPlanBtn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        #addPlanBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .plan-list {
+            margin-top: 15px;
+        }
+
+        .plan-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .plan-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .plan-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .plan-text {
+            flex: 1;
+            color: #2d3436;
+            font-size: 1em;
+        }
+
+        .plan-text.completed {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .plan-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background 0.3s ease;
+        }
+
+        .plan-delete:hover {
+            background: #c0392b;
+        }
+
+        .empty-plan {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="working">
+    <div class="container">
+        <!-- 菜单栏 -->
+        <div class="menu-bar">
+            <!-- 原有的按钮保留但隐藏 -->
+            <button class="menu-btn active" id="homeBtn" style="display: none;">番茄钟主页</button>
+            <button class="menu-btn" id="historyBtn" style="display: none;">历史记录</button>
+            <button class="menu-btn" id="planBtn" style="display: none;">计划</button>
+            
+            <!-- 新的菜单按钮 -->
+            <button class="menu-icon-btn" id="menuToggleBtn">
+                ☰
+            </button>
+            
+            <!-- 下拉菜单 -->
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="menu-item" data-page="home">
+                    🏠
+                    <span>番茄钟主页</span>
+                </div>
+                <div class="menu-item" data-page="plan">
+                    📝
+                    <span>计划</span>
+                </div>
+                <div class="menu-item" data-page="history">
+                    📚
+                    <span>历史记录</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设置按钮 -->
+        <button id="settingsBtn">⚙️</button>
+        
+        <!-- 番茄钟主页 -->
+        <div id="homePage">
+            <h1>番茄钟++</h1>
+            <input type="text" id="task" placeholder="你正在学习什么编程内容？">
+            <div id="timer">25:00</div>
+            <div class="progress-indicator" id="progressIndicator">模式A: 单番茄钟 (1/1)</div>
+            <div class="buttons">
+                <button id="startPauseBtn">开始专注</button>
+                <button id="resetBtn">重置</button>
+            </div>
+            <div id="countDisplay">今日已完成: <span id="count">0</span> 个番茄钟</div>
+            <div class="shortcut-hint">快捷键: 空格键 - 开始/暂停, R键 - 重置</div>
+
+            <!-- 多植物种植系统 -->
+            <div class="plant-system">
+                <h3>我的植物园</h3>
+                
+                <!-- 植物选择 -->
+                <div class="plant-selector">
+                    <label>选择植物:</label>
+                    <select id="plantType">
+                        <option value="tomato">🍅 番茄 (25分钟)</option>
+                        <option value="carrot">🥕 胡萝卜 (15分钟)</option>
+                        <option value="broccoli">🥦 西兰花 (20分钟)</option>
+                        <option value="eggplant">🍆 茄子 (30分钟)</option>
+                        <option value="corn">🌽 玉米 (35分钟)</option>
+                        <option value="watermelon">🍉 西瓜 (45分钟)</option>
+                        <option value="strawberry">🍓 草莓 (10分钟)</option>
+                        <option value="pepper">🫑 辣椒 (18分钟)</option>
+                    </select>
+                </div>
+
+                <!-- 植物信息 -->
+                <div class="plant-info">
+                    <div class="plant-icon" id="currentPlantIcon">🍅</div>
+                    <div class="plant-details">
+                        <div class="plant-name" id="currentPlantName">番茄</div>
+                        <div class="plant-time" id="currentPlantTime">成熟时间: 25分钟</div>
+                    </div>
+                </div>
+
+                <!-- 植物生长展示 - 改为使用图片 -->
+                <div class="plant-container">
+                    <div class="soil"></div>
+                    <div class="plant-stage" id="stage-seed">
+                        <img src="images/plants/tomato-seed.png" alt="种子阶段">
+                    </div>
+                    <div class="plant-stage" id="stage-sprout">
+                        <img src="images/plants/tomato-sprout.png" alt="发芽阶段">
+                    </div>
+                    <div class="plant-stage" id="stage-small">
+                        <img src="images/plants/tomato-small.png" alt="小苗阶段">
+                    </div>
+                    <div class="plant-stage" id="stage-medium">
+                        <img src="images/plants/tomato-medium.png" alt="中苗阶段">
+                    </div>
+                    <div class="plant-stage" id="stage-mature">
+                        <img src="images/plants/tomato-mature.png" alt="成熟阶段">
+                    </div>
+                </div>
+
+                <div class="growth-info">
+                    <div>成长进度: <span id="growth-percent">0</span>%</div>
+                    <div class="growth-bar">
+                        <div class="growth-progress" id="growth-progress" style="width: 0%"></div>
+                    </div>
+                    <div>已累积: <span id="growth-minutes">0</span> / <span id="total-minutes">25</span> 分钟</div>
+                    <div class="harvest-stats" id="harvestStats"></div>
+                </div>
+                <button id="harvestBtn" class="new-plant-btn" style="display: none;">收获植物！</button>
+            </div>
+
+            <!-- 收藏柜 -->
+            <div class="collection-section">
+                <div class="collection-title">我的植物收藏柜</div>
+                <div class="collection-grid" id="collection-grid">
+                    <!-- 收藏的植物会动态添加到这里 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 历史记录页面 -->
+        <div id="historyPage" class="history-section">
+            <h2>已完成番茄钟记录</h2>
+            <div class="history-list" id="historyList">
+                <!-- 历史记录会动态添加到这里 -->
+                <div class="empty-history">暂无历史记录，完成番茄钟后将会显示在这里</div>
+            </div>
+            <button class="clear-history" id="clearHistoryBtn">清空历史记录</button>
+        </div>
+
+        <!-- 新增计划页面 -->
+        <div id="planPage" class="plan-section">
+            <h2>学习计划</h2>
+            <div class="plan-input">
+                <input type="text" id="planInput" placeholder="添加新的学习计划...">
+                <button id="addPlanBtn">添加</button>
+            </div>
+            <div class="plan-list" id="planList">
+                <!-- 计划项会动态添加到这里 -->
+                <div class="empty-plan">暂无计划，添加您的学习计划</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+        <h3>时间设置</h3>
+        
+        <div class="mode-selector">
+            <div class="mode-tabs">
+                <div class="mode-tab active" data-mode="A">模式A: 单番茄钟</div>
+                <div class="mode-tab" data-mode="B">模式B: 循环多番茄钟</div>
+                <div class="mode-tab" data-mode="C">模式C: 自定义番茄钟</div>
+            </div>
+            
+            <!-- 模式A: 单番茄钟 -->
+            <div class="mode-content active" id="modeA">
+                <div class="setting-group">
+                    <label for="modeA_duration">番茄钟时长 (分钟)</label>
+                    <input type="number" id="modeA_duration" class="setting-input" min="1" max="120" value="25">
+                    <div class="setting-hint">设置单个番茄钟的工作时长</div>
+                </div>
+            </div>
+            
+            <!-- 模式B: 循环多番茄钟 -->
+            <div class="mode-content" id="modeB">
+                <div class="setting-group">
+                    <label for="modeB_duration">番茄钟时长 (分钟)</label>
+                    <input type="number" id="modeB_duration" class="setting-input" min="1" max="120" value="25">
+                </div>
+                <div class="setting-group">
+                    <label for="modeB_count">番茄钟个数</label>
+                    <input type="number" id="modeB_count" class="setting-input" min="1" max="20" value="4">
+                </div>
+                <div class="setting-group">
+                    <label for="modeB_break">休息时间 (分钟)</label>
+                    <input type="number" id="modeB_break" class="setting-input" min="1" max="30" value="5">
+                    <div class="setting-hint">每个番茄钟之间的休息时间</div>
+                </div>
+            </div>
+            
+            <!-- 模式C: 自定义番茄钟 -->
+            <div class="mode-content" id="modeC">
+                <div class="setting-group">
+                    <label for="modeC_count">番茄钟个数</label>
+                    <input type="number" id="modeC_count" class="setting-input" min="1" max="10" value="3">
+                </div>
+                <div class="setting-group">
+                    <label for="modeC_durations">番茄钟时长 (分钟)</label>
+                    <input type="text" id="modeC_durations" class="setting-input" value="25,30,20">
+                    <div class="setting-hint">输入每个番茄钟的时长，用逗号分隔，例如: 25,30,20</div>
+                </div>
+                <div class="setting-group">
+                    <label for="modeC_breaks">休息时间 (分钟)</label>
+                    <input type="text" id="modeC_breaks" class="setting-input" value="5,10">
+                    <div class="setting-hint">输入每个休息时长，用逗号分隔，例如: 5,10 (个数比番茄钟少1)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="setting-buttons">
+            <button id="cancelSettings">取消</button>
+            <button id="saveSettings">保存</button>
+        </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- 通知 -->
+    <div class="notification" id="notification"></div>
+
+    <!-- 托盘通知 -->
+    <div class="tray-notification" id="trayNotification">
+        应用已最小化到系统托盘
+    </div>
+
+    <!-- 音效 -->
+    <audio id="workEndSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="breakEndSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // 植物数据定义 - 更新为包含图片路径
+        const plants = {
+            tomato: {
+                name: "番茄",
+                icon: "🍅",
+                growthTime: 25,
+                color: "#e74c3c",
+                fruitColor: "#e74c3c",
+                stages: [0, 5, 10, 15, 25],
+                images: {
+                    seed: "images/plants/tomato-seed.png",
+                    sprout: "images/plants/tomato-sprout.png",
+                    small: "images/plants/tomato-small.png",
+                    medium: "images/plants/tomato-medium.png",
+                    mature: "images/plants/tomato-mature.png"
+                }
+            },
+            carrot: {
+                name: "胡萝卜",
+                icon: "🥕",
+                growthTime: 15,
+                color: "#e67e22",
+                fruitColor: "#e67e22", 
+                stages: [0, 3, 6, 9, 15],
+                images: {
+                    seed: "images/plants/carrot-seed.png",
+                    sprout: "images/plants/carrot-sprout.png",
+                    small: "images/plants/carrot-small.png",
+                    medium: "images/plants/carrot-medium.png",
+                    mature: "images/plants/carrot-mature.png"
+                }
+            },
+            broccoli: {
+                name: "西兰花",
+                icon: "🥦",
+                growthTime: 20,
+                color: "#27ae60",
+                fruitColor: "#27ae60",
+                stages: [0, 4, 8, 12, 20],
+                images: {
+                    seed: "images/plants/broccoli-seed.png",
+                    sprout: "images/plants/broccoli-sprout.png",
+                    small: "images/plants/broccoli-small.png",
+                    medium: "images/plants/broccoli-medium.png",
+                    mature: "images/plants/broccoli-mature.png"
+                }
+            },
+            eggplant: {
+                name: "茄子",
+                icon: "🍆",
+                growthTime: 30,
+                color: "#8e44ad",
+                fruitColor: "#8e44ad",
+                stages: [0, 6, 12, 18, 30],
+                images: {
+                    seed: "images/plants/eggplant-seed.png",
+                    sprout: "images/plants/eggplant-sprout.png",
+                    small: "images/plants/eggplant-small.png",
+                    medium: "images/plants/eggplant-medium.png",
+                    mature: "images/plants/eggplant-mature.png"
+                }
+            },
+            corn: {
+                name: "玉米",
+                icon: "🌽",
+                growthTime: 35,
+                color: "#f1c40f",
+                fruitColor: "#f1c40f",
+                stages: [0, 7, 14, 21, 35],
+                images: {
+                    seed: "images/plants/corn-seed.png",
+                    sprout: "images/plants/corn-sprout.png",
+                    small: "images/plants/corn-small.png",
+                    medium: "images/plants/corn-medium.png",
+                    mature: "images/plants/corn-mature.png"
+                }
+            },
+            watermelon: {
+                name: "西瓜",
+                icon: "🍉",
+                growthTime: 45,
+                color: "#2ecc71",
+                fruitColor: "#2ecc71",
+                stages: [0, 9, 18, 27, 45],
+                images: {
+                    seed: "images/plants/watermelon-seed.png",
+                    sprout: "images/plants/watermelon-sprout.png",
+                    small: "images/plants/watermelon-small.png",
+                    medium: "images/plants/watermelon-medium.png",
+                    mature: "images/plants/watermelon-mature.png"
+                }
+            },
+            strawberry: {
+                name: "草莓",
+                icon: "🍓",
+                growthTime: 10,
+                color: "#e74c3c",
+                fruitColor: "#e74c3c",
+                stages: [0, 2, 4, 6, 10],
+                images: {
+                    seed: "images/plants/strawberry-seed.png",
+                    sprout: "images/plants/strawberry-sprout.png",
+                    small: "images/plants/strawberry-small.png",
+                    medium: "images/plants/strawberry-medium.png",
+                    mature: "images/plants/strawberry-mature.png"
+                }
+            },
+            pepper: {
+                name: "辣椒",
+                icon: "🫑",
+                growthTime: 18,
+                color: "#e74c3c",
+                fruitColor: "#e74c3c",
+                stages: [0, 3.6, 7.2, 10.8, 18],
+                images: {
+                    seed: "images/plants/pepper-seed.png",
+                    sprout: "images/plants/pepper-sprout.png",
+                    small: "images/plants/pepper-small.png",
+                    medium: "images/plants/pepper-medium.png",
+                    mature: "images/plants/pepper-mature.png"
+                }
+            }
+        };
+
+        // 使用一个对象来管理所有状态，避免全局变量污染
+        const tomatoTimer = {
+            // 计时器状态
+            currentTime: 25 * 60,
+            timerId: null,
+            isRunning: false,
+            isWorkSession: true,
+            count: 0,
+            lastPlantPercent: 0,
+            
+            // 多植物系统状态 - 修改：每个植物有独立的成长进度
+            currentPlant: 'tomato',
+            plantGrowths: {}, // 改为对象，存储每个植物的成长值
+            collection: [], // 收藏柜中的植物
+            
+            // 历史记录
+            history: [],
+            
+            // 计划功能
+            plans: [],
+            
+            // 模式设置
+            currentMode: 'A',
+            modeSettings: {
+                A: { duration: 25 },
+                B: { duration: 25, count: 4, break: 5 },
+                C: { count: 3, durations: [25, 30, 20], breaks: [5, 10] }
+            },
+            
+            // 当前进度
+            currentSession: 0, // 当前番茄钟序号
+            currentBreak: 0,   // 当前休息序号
+            
+            // 新增属性：记录当前番茄钟已进行的时间（秒）
+            currentSessionElapsed: 0,
+            
+            // DOM 元素引用
+            elements: {},
+            
+            // 初始化方法
+            init() {
+                // 获取DOM元素引用
+                this.elements = {
+                    timerDisplay: document.getElementById('timer'),
+                    startPauseBtn: document.getElementById('startPauseBtn'),
+                    resetBtn: document.getElementById('resetBtn'),
+                    countDisplay: document.getElementById('count'),
+                    taskInput: document.getElementById('task'),
+                    progressIndicator: document.getElementById('progressIndicator'),
+                    workEndSound: document.getElementById('workEndSound'),
+                    breakEndSound: document.getElementById('breakEndSound'),
+                    // 植物系统元素
+                    plantType: document.getElementById('plantType'),
+                    currentPlantIcon: document.getElementById('currentPlantIcon'),
+                    currentPlantName: document.getElementById('currentPlantName'),
+                    currentPlantTime: document.getElementById('currentPlantTime'),
+                    growthPercent: document.getElementById('growth-percent'),
+                    growthProgress: document.getElementById('growth-progress'),
+                    growthMinutes: document.getElementById('growth-minutes'),
+                    totalMinutes: document.getElementById('total-minutes'),
+                    harvestBtn: document.getElementById('harvestBtn'),
+                    collectionGrid: document.getElementById('collection-grid'),
+                    notification: document.getElementById('notification'),
+                    trayNotification: document.getElementById('trayNotification'),
+                    harvestStats: document.getElementById('harvestStats'),
+                    // 页面切换元素
+                    homePage: document.getElementById('homePage'),
+                    historyPage: document.getElementById('historyPage'),
+                    homeBtn: document.getElementById('homeBtn'),
+                    historyBtn: document.getElementById('historyBtn'),
+                    historyList: document.getElementById('historyList'),
+                    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+                    // 设置面板元素
+                    settingsBtn: document.getElementById('settingsBtn'),
+                    settingsPanel: document.getElementById('settingsPanel'),
+                    overlay: document.getElementById('overlay'),
+                    saveSettingsBtn: document.getElementById('saveSettings'),
+                    cancelSettingsBtn: document.getElementById('cancelSettings'),
+                    // 模式设置元素
+                    modeTabs: document.querySelectorAll('.mode-tab'),
+                    modeContents: document.querySelectorAll('.mode-content'),
+                    modeA_duration: document.getElementById('modeA_duration'),
+                    modeB_duration: document.getElementById('modeB_duration'),
+                    modeB_count: document.getElementById('modeB_count'),
+                    modeB_break: document.getElementById('modeB_break'),
+                    modeC_count: document.getElementById('modeC_count'),
+                    modeC_durations: document.getElementById('modeC_durations'),
+                    modeC_breaks: document.getElementById('modeC_breaks'),
+                    // 新添加的元素
+                    menuToggleBtn: document.getElementById('menuToggleBtn'),
+                    dropdownMenu: document.getElementById('dropdownMenu'),
+                    planPage: document.getElementById('planPage'),
+                    planInput: document.getElementById('planInput'),
+                    addPlanBtn: document.getElementById('addPlanBtn'),
+                    planList: document.getElementById('planList')
+                };
+                
+                // 创建状态显示元素
+                this.elements.statusDisplay = document.createElement('div');
+                this.elements.statusDisplay.className = 'status';
+                document.querySelector('.container').appendChild(this.elements.statusDisplay);
+                
+                // 加载保存的数据
+                this.loadFromStorage();
+                
+                // 绑定事件监听器
+                this.bindEvents();
+                this.bindNewEvents();
+                
+                // 初始化显示
+                this.updateStatus();
+                this.updateDisplay();
+                this.updateCountDisplay();
+                this.updatePlantDisplay();
+                this.renderCollection();
+                this.renderHistory();
+                this.updateProgressIndicator();
+                
+                // 加载计划数据
+                this.loadPlans();
+                
+                // 初始化植物进度跟踪
+                const plant = plants[this.currentPlant];
+                const currentGrowth = this.getCurrentPlantGrowth();
+                const currentPercent = Math.min(100, (currentGrowth / plant.growthTime) * 100);
+                this.lastPlantPercent = currentPercent;
+                
+                // 通知用户应用已启动
+                this.showNotification('番茄钟应用已启动');
+            },
+            
+            // 绑定事件监听器
+            bindEvents() {
+                // 为所有元素添加安全检查
+                if (this.elements.startPauseBtn) {
+                    this.elements.startPauseBtn.addEventListener('click', () => this.toggleTimer());
+                }
+                
+                if (this.elements.resetBtn) {
+                    this.elements.resetBtn.addEventListener('click', () => this.resetTimer());
+                }
+                
+                if (this.elements.taskInput) {
+                    this.elements.taskInput.addEventListener('input', () => this.saveToStorage());
+                }
+                
+                if (this.elements.harvestBtn) {
+                    this.elements.harvestBtn.addEventListener('click', () => this.harvestPlant());
+                }
+                
+                if (this.elements.plantType) {
+                    this.elements.plantType.addEventListener('change', () => this.changePlant());
+                }
+                
+                if (this.elements.homeBtn) {
+                    this.elements.homeBtn.addEventListener('click', () => this.showPage('home'));
+                }
+                
+                if (this.elements.historyBtn) {
+                    this.elements.historyBtn.addEventListener('click', () => this.showPage('history'));
+                }
+                
+                if (this.elements.clearHistoryBtn) {
+                    this.elements.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+                }
+                
+                if (this.elements.settingsBtn) {
+                    this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
+                }
+                
+                if (this.elements.saveSettingsBtn) {
+                    this.elements.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+                }
+                
+                if (this.elements.cancelSettingsBtn) {
+                    this.elements.cancelSettingsBtn.addEventListener('click', () => this.closeSettings());
+                }
+                
+                if (this.elements.overlay) {
+                    this.elements.overlay.addEventListener('click', () => this.closeSettings());
+                }
+                
+                // 模式切换事件
+                if (this.elements.modeTabs) {
+                    this.elements.modeTabs.forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            const mode = tab.getAttribute('data-mode');
+                            this.switchModeTab(mode);
+                        });
+                    });
+                }
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.toggleTimer();
+                    } else if (e.code === 'KeyR') {
+                        this.resetTimer();
+                    } else if (e.code === 'Escape') {
+                        this.closeSettings();
+                    }
+                });
+            },
+
+            // 绑定新的事件监听器
+            bindNewEvents() {
+                // 1. 绑定菜单切换按钮
+                if (this.elements.menuToggleBtn) {
+                    this.elements.menuToggleBtn.addEventListener('click', (e) => {
+                        // 轻微延迟有助于避免与文档点击事件的冲突
+                        setTimeout(() => {
+                            this.toggleDropdownMenu();
+                        }, 10);
+                    });
+                }
+
+                // 2. 绑定下拉菜单项
+                const menuItems = this.elements.dropdownMenu.querySelectorAll('.menu-item');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const page = item.getAttribute('data-page');
+                        this.showPage(page);
+                        this.closeDropdownMenu();
+                    });
+                });
+
+                // 3. 点击页面其他区域关闭下拉菜单
+                document.addEventListener('click', () => {
+                    this.closeDropdownMenu();
+                });
+
+                // 4. 阻止下拉菜单内部的点击事件冒泡到document（避免立即触发上述的关闭事件）
+                if (this.elements.dropdownMenu) {
+                    this.elements.dropdownMenu.addEventListener('click', (e) => {
+                        e.stopPropagation(); // 这是必要的
+                    });
+                }
+
+                // 5. 绑定计划功能的按钮和输入框
+                if (this.elements.addPlanBtn) {
+                    this.elements.addPlanBtn.addEventListener('click', () => this.addPlan());
+                }
+                if (this.elements.planInput) {
+                    this.elements.planInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            this.addPlan();
+                        }
+                    });
+                }
+            },
+            
+            // 切换下拉菜单显示/隐藏
+            toggleDropdownMenu() {
+                if (this.elements.dropdownMenu.classList.contains('show')) {
+                    this.closeDropdownMenu();
+                } else {
+                    this.openDropdownMenu();
+                }
+            },
+
+            // 打开下拉菜单
+            openDropdownMenu() {
+                this.elements.dropdownMenu.classList.add('show');
+            },
+
+            // 关闭下拉菜单
+            closeDropdownMenu() {
+                this.elements.dropdownMenu.classList.remove('show');
+            },
+            
+            // 切换模式标签
+            switchModeTab(mode) {
+                // 更新标签
+                this.elements.modeTabs.forEach(tab => {
+                    if (tab.getAttribute('data-mode') === mode) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                // 更新内容
+                this.elements.modeContents.forEach(content => {
+                    if (content.id === `mode${mode}`) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            },
+            
+            // 从localStorage加载数据
+            loadFromStorage() {
+                const savedCount = localStorage.getItem('tomatoCount');
+                const savedTask = localStorage.getItem('currentTask');
+                const savedMode = localStorage.getItem('currentMode');
+                const savedModeSettings = localStorage.getItem('modeSettings');
+                
+                // 植物系统数据
+                const savedPlant = localStorage.getItem('currentPlant');
+                const savedPlantGrowths = localStorage.getItem('plantGrowths'); // 改为plantGrowths
+                const savedCollection = localStorage.getItem('plantCollection');
+                
+                // 历史记录数据
+                const savedHistory = localStorage.getItem('tomatoHistory');
+                
+                if (savedCount) {
+                    this.count = parseInt(savedCount);
+                }
+                
+                if (savedTask) {
+                    this.elements.taskInput.value = savedTask;
+                }
+                
+                if (savedMode) {
+                    this.currentMode = savedMode;
+                    this.switchModeTab(this.currentMode);
+                }
+                
+                if (savedModeSettings) {
+                    this.modeSettings = JSON.parse(savedModeSettings);
+                    
+                    // 更新设置面板的值
+                    this.elements.modeA_duration.value = this.modeSettings.A.duration;
+                    this.elements.modeB_duration.value = this.modeSettings.B.duration;
+                    this.elements.modeB_count.value = this.modeSettings.B.count;
+                    this.elements.modeB_break.value = this.modeSettings.B.break;
+                    this.elements.modeC_count.value = this.modeSettings.C.count;
+                    this.elements.modeC_durations.value = this.modeSettings.C.durations.join(',');
+                    this.elements.modeC_breaks.value = this.modeSettings.C.breaks.join(',');
+                }
+                
+                // 加载植物数据
+                if (savedPlant) {
+                    this.currentPlant = savedPlant;
+                    this.elements.plantType.value = this.currentPlant;
+                }
+                
+                // 加载植物成长值对象
+                if (savedPlantGrowths) {
+                    this.plantGrowths = JSON.parse(savedPlantGrowths);
+                } else {
+                    // 如果没有保存的数据，初始化所有植物的成长值为0
+                    Object.keys(plants).forEach(plantType => {
+                        this.plantGrowths[plantType] = 0;
+                    });
+                }
+                
+                if (savedCollection) {
+                    this.collection = JSON.parse(savedCollection);
+                }
+                
+                // 加载历史记录
+                if (savedHistory) {
+                    this.history = JSON.parse(savedHistory);
+                }
+                
+                // 设置当前时间
+                this.resetTimer();
+            },
+            
+            // 保存数据到localStorage
+            saveToStorage() {
+                localStorage.setItem('tomatoCount', this.count.toString());
+                localStorage.setItem('currentTask', this.elements.taskInput.value);
+                localStorage.setItem('currentMode', this.currentMode);
+                localStorage.setItem('modeSettings', JSON.stringify(this.modeSettings));
+                
+                // 保存植物系统数据
+                localStorage.setItem('currentPlant', this.currentPlant);
+                localStorage.setItem('plantGrowths', JSON.stringify(this.plantGrowths)); // 改为plantGrowths
+                localStorage.setItem('plantCollection', JSON.stringify(this.collection));
+                
+                // 保存历史记录
+                localStorage.setItem('tomatoHistory', JSON.stringify(this.history));
+            },
+
+            // 加载计划数据
+            loadPlans() {
+                const savedPlans = localStorage.getItem('tomatoPlans');
+                if (savedPlans) {
+                    this.plans = JSON.parse(savedPlans);
+                    this.renderPlans();
+                }
+            },
+
+            // 保存计划数据
+            savePlans() {
+                localStorage.setItem('tomatoPlans', JSON.stringify(this.plans));
+            },
+            
+            // 获取当前植物的成长值
+            getCurrentPlantGrowth() {
+                if (!this.plantGrowths[this.currentPlant]) {
+                    this.plantGrowths[this.currentPlant] = 0;
+                }
+                return this.plantGrowths[this.currentPlant];
+            },
+            
+            // 设置当前植物的成长值
+            setCurrentPlantGrowth(value) {
+                this.plantGrowths[this.currentPlant] = value;
+            },
+            
+            // 更新计数显示
+            updateCountDisplay() {
+                this.elements.countDisplay.textContent = this.count;
+            },
+            
+            // 更新进度指示器
+            updateProgressIndicator() {
+                let text = '';
+                switch(this.currentMode) {
+                    case 'A':
+                        text = `模式A: 单番茄钟 (${this.isWorkSession ? '工作中' : '已完成'})`;
+                        break;
+                    case 'B':
+                        const totalSessions = this.modeSettings.B.count;
+                        const current = this.isWorkSession ? this.currentSession : this.currentSession - 1;
+                        text = `模式B: 循环多番茄钟 (${current}/${totalSessions})`;
+                        break;
+                    case 'C':
+                        const total = this.modeSettings.C.durations.length;
+                        const currentC = this.isWorkSession ? this.currentSession : this.currentSession - 1;
+                        text = `模式C: 自定义番茄钟 (${currentC}/${total})`;
+                        break;
+                }
+                this.elements.progressIndicator.textContent = text;
+            },
+            
+            // 更新状态显示和背景
+            updateStatus() {
+                if (this.isWorkSession) {
+                    document.body.className = 'working';
+                    this.elements.statusDisplay.textContent = '专注工作中';
+                    this.elements.statusDisplay.className = 'status work';
+                } else {
+                    document.body.className = 'breaking';
+                    this.elements.statusDisplay.textContent = '休息时间';
+                    this.elements.statusDisplay.className = 'status break';
+                }
+                this.updateProgressIndicator();
+            },
+            
+            // 更新计时器显示
+            updateDisplay() {
+                const minutes = Math.floor(this.currentTime / 60).toString().padStart(2, '0');
+                const seconds = (this.currentTime % 60).toString().padStart(2, '0');
+                this.elements.timerDisplay.textContent = `${minutes}:${seconds}`;
+                
+                // 更新页面标题
+                const status = this.isWorkSession ? '专注' : '休息';
+                document.title = `${minutes}:${seconds} - ${status} | 番茄钟++`;
+            },
+            
+            // 显示页面
+            showPage(page) {
+                // 隐藏所有页面
+                this.elements.homePage.style.display = 'none';
+                this.elements.historyPage.style.display = 'none';
+                this.elements.planPage.style.display = 'none';
+                
+                // 移除所有菜单项的激活状态
+                const menuItems = this.elements.dropdownMenu.querySelectorAll('.menu-item');
+                menuItems.forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // 显示选中的页面并设置激活状态
+                switch(page) {
+                    case 'home':
+                        this.elements.homePage.style.display = 'block';
+                        document.querySelector('.menu-item[data-page="home"]').classList.add('active');
+                        break;
+                    case 'history':
+                        this.elements.historyPage.style.display = 'block';
+                        document.querySelector('.menu-item[data-page="history"]').classList.add('active');
+                        break;
+                    case 'plan':
+                        this.elements.planPage.style.display = 'block';
+                        document.querySelector('.menu-item[data-page="plan"]').classList.add('active');
+                        break;
+                }
+                
+                // 更新原有的按钮状态（虽然隐藏了，但保持状态同步）
+                this.elements.homeBtn.classList.toggle('active', page === 'home');
+                this.elements.historyBtn.classList.toggle('active', page === 'history');
+            },
+            
+            // 切换植物 - 修改：每个植物有独立的进度
+            changePlant() {
+                this.currentPlant = this.elements.plantType.value;
+                this.updatePlantDisplay();
+                this.updatePetStatus();
+                this.saveToStorage();
+                
+                const plant = plants[this.currentPlant];
+                this.showNotification(`已选择种植: ${plant.name} ${plant.icon}`);
+            },
+            
+            // 切换会话（工作/休息）
+            switchSession() {
+                if (this.isWorkSession) {
+                    // 工作结束，切换到休息
+                    this.isWorkSession = false;
+                    
+                    // 增加植物成长值（专注时间）- 修改：使用当前植物的成长值
+                    const workMinutes = this.getCurrentWorkTime() / 60;
+                    this.addGrowth(workMinutes);
+                    
+                    // 保存番茄钟记录
+                    if (this.elements.taskInput.value.trim()) {
+                        this.addToHistory(this.elements.taskInput.value.trim());
+                    }
+                    
+                    // 播放工作结束音效
+                    this.elements.workEndSound.play();
+                    
+                    // 根据模式决定下一步
+                    if (this.currentMode === 'A') {
+                        // 模式A: 单番茄钟，结束后重置
+                        this.showNotification('工作时间结束！');
+                        this.resetTimer();
+                        return;
+                    } else if (this.currentMode === 'B') {
+                        // 模式B: 循环多番茄钟
+                        if (this.currentSession >= this.modeSettings.B.count) {
+                            // 所有番茄钟完成
+                            this.showNotification('恭喜！所有番茄钟已完成！');
+                            this.resetTimer();
+                            return;
+                        } else {
+                            // 开始休息
+                            this.currentTime = this.modeSettings.B.break * 60;
+                            this.showNotification('工作时间结束！开始休息。');
+                        }
+                    } else if (this.currentMode === 'C') {
+                        // 模式C: 自定义番茄钟
+                        if (this.currentSession >= this.modeSettings.C.durations.length) {
+                            // 所有番茄钟完成
+                            this.showNotification('恭喜！所有番茄钟已完成！');
+                            this.resetTimer();
+                            return;
+                        } else {
+                            // 开始休息
+                            const breakIndex = this.currentSession - 1;
+                            if (breakIndex < this.modeSettings.C.breaks.length) {
+                                this.currentTime = this.modeSettings.C.breaks[breakIndex] * 60;
+                                this.showNotification('工作时间结束！开始休息。');
+                            } else {
+                                // 没有更多休息，直接开始下一个番茄钟
+                                this.isWorkSession = true;
+                                this.currentSession++;
+                                this.currentTime = this.modeSettings.C.durations[this.currentSession - 1] * 60;
+                                this.showNotification('工作时间结束！开始下一个番茄钟。');
+                            }
+                        }
+                    }
+                } else {
+                    // 休息结束，切换回工作
+                    this.isWorkSession = true;
+                    this.currentSession++;
+                    
+                    // 播放休息结束音效
+                    this.elements.breakEndSound.play();
+                    
+                    // 根据模式设置工作时间
+                    if (this.currentMode === 'B') {
+                        this.currentTime = this.modeSettings.B.duration * 60;
+                        this.showNotification('休息时间结束！开始下一个番茄钟。');
+                    } else if (this.currentMode === 'C') {
+                        if (this.currentSession <= this.modeSettings.C.durations.length) {
+                            this.currentTime = this.modeSettings.C.durations[this.currentSession - 1] * 60;
+                            this.showNotification('休息时间结束！开始下一个番茄钟。');
+                        }
+                    }
+                }
+                
+                // 重置当前会话已进行时间
+                this.currentSessionElapsed = 0;
+                
+                this.updateStatus();
+                this.updateDisplay();
+                this.updatePlantDisplay();
+                this.updatePetStatus();
+            },
+            
+            // 获取当前工作时间
+            getCurrentWorkTime() {
+                switch(this.currentMode) {
+                    case 'A':
+                        return this.modeSettings.A.duration * 60;
+                    case 'B':
+                        return this.modeSettings.B.duration * 60;
+                    case 'C':
+                        if (this.currentSession > 0 && this.currentSession <= this.modeSettings.C.durations.length) {
+                            return this.modeSettings.C.durations[this.currentSession - 1] * 60;
+                        }
+                        return 25 * 60; // 默认值
+                    default:
+                        return 25 * 60;
+                }
+            },
+            
+            // 增加植物成长值 - 修改：使用当前植物的成长值
+            addGrowth(minutes) {
+                const plant = plants[this.currentPlant];
+                const growthTime = plant.growthTime;
+                
+                // 获取当前植物的成长值
+                const currentGrowth = this.getCurrentPlantGrowth();
+                
+                // 增加成长值
+                const newGrowth = currentGrowth + minutes;
+                this.setCurrentPlantGrowth(newGrowth);
+                
+                // 计算可以收获的植物数量
+                const harvestCount = Math.floor(newGrowth / growthTime);
+                
+                // 如果有可以收获的植物
+                if (harvestCount > 0) {
+                    // 收获植物
+                    for (let i = 0; i < harvestCount; i++) {
+                        // 随机决定品质
+                        const quality = this.getRandomQuality();
+                        let displayName = plant.name;
+                        
+                        // 根据品质调整名称
+                        if (quality === 'super') {
+                            displayName = `超级${plant.name}`;
+                        } else if (quality === 'rare') {
+                            displayName = `稀有${plant.name}`;
+                        }
+                        
+                        const newPlant = {
+                            id: Date.now() + Math.random(),
+                            type: this.currentPlant,
+                            name: displayName,
+                            originalName: plant.name,
+                            icon: plant.icon,
+                            color: plant.color,
+                            date: new Date().toLocaleDateString(),
+                            growth: growthTime,
+                            quality: quality
+                        };
+                        this.collection.push(newPlant);
+                        
+                        // 显示品质通知
+                        if (quality === 'super') {
+                            this.showNotification(`🎉 恭喜！收获了一个超级${plant.name}！`);
+                        } else if (quality === 'rare') {
+                            this.showNotification(`✨ 太棒了！收获了一个稀有${plant.name}！`);
+                        }
+                    }
+                    
+                    // 更新成长值（保留余数）
+                    this.setCurrentPlantGrowth(newGrowth % growthTime);
+                    
+                    // 更新显示
+                    this.renderCollection();
+                    
+                    // 显示收获通知
+                    this.showNotification(`成功收获${harvestCount}个${plant.name} ${plant.icon}！已放入收藏柜。`);
+                }
+                
+                // 更新植物显示
+                this.updatePlantDisplay();
+                
+                // 保存数据
+                this.saveToStorage();
+            },
+            
+            // 随机获取植物品质
+            getRandomQuality() {
+                const random = Math.random();
+                if (random < 0.1) { // 10% 概率超级品质
+                    return 'super';
+                } else if (random < 0.3) { // 20% 概率稀有品质
+                    return 'rare';
+                } else { // 70% 概率普通品质
+                    return 'normal';
+                }
+            },
+            
+            // 更新植物显示 - 修改：使用临时成长值
+            updatePlantDisplay() {
+                const plant = plants[this.currentPlant];
+                const growthTime = plant.growthTime;
+                
+                // 计算临时成长值：永久成长值 + 当前番茄钟已进行的时间（分钟）
+                let tempGrowth = this.getCurrentPlantGrowth();
+                if (this.isRunning && this.isWorkSession) {
+                    // 当前番茄钟已进行的时间（秒）转换为分钟
+                    tempGrowth += this.currentSessionElapsed / 60;
+                }
+                
+                const percent = Math.min(100, (tempGrowth / growthTime) * 100);
+                
+                // 更新植物信息
+                this.elements.currentPlantIcon.textContent = plant.icon;
+                this.elements.currentPlantName.textContent = plant.name;
+                this.elements.currentPlantTime.textContent = `成熟时间: ${growthTime}分钟`;
+                this.elements.totalMinutes.textContent = growthTime;
+                
+                // 更新进度显示
+                this.elements.growthPercent.textContent = Math.round(percent);
+                this.elements.growthProgress.style.width = `${percent}%`;
+                this.elements.growthProgress.style.background = `linear-gradient(90deg, ${plant.color}, ${plant.fruitColor})`;
+                this.elements.growthMinutes.textContent = Math.round(tempGrowth);
+                
+                // 更新收获统计
+                const harvestCount = Math.floor(tempGrowth / growthTime);
+                if (harvestCount > 0) {
+                    this.elements.harvestStats.textContent = `已收获: ${harvestCount}个`;
+                } else {
+                    this.elements.harvestStats.textContent = '';
+                }
+                
+                // 更新成长阶段 - 使用图片
+                const stages = ['seed', 'sprout', 'small', 'medium', 'mature'];
+                stages.forEach(stage => {
+                    const element = document.getElementById(`stage-${stage}`);
+                    if (element) {
+                        // 更新图片源
+                        const img = element.querySelector('img');
+                        if (img) {
+                            img.src = plant.images[stage];
+                            img.alt = `${plant.name} ${stage}阶段`;
+                        }
+                        element.classList.remove('active');
+                    }
+                });
+                
+                // 确定当前阶段 - 基于临时成长值
+                let currentStageIndex = 0;
+                for (let i = plant.stages.length - 1; i >= 0; i--) {
+                    if (tempGrowth >= plant.stages[i]) {
+                        currentStageIndex = i;
+                        break;
+                    }
+                }
+                
+                // 激活当前阶段
+                const currentStageElement = document.getElementById(`stage-${stages[currentStageIndex]}`);
+                if (currentStageElement) {
+                    currentStageElement.classList.add('active');
+                }
+                
+                // 显示/隐藏收获按钮（基于临时成长值）
+                if (tempGrowth >= growthTime) {
+                    this.elements.harvestBtn.style.display = 'block';
+                } else {
+                    this.elements.harvestBtn.style.display = 'none';
+                }
+            },
+            
+            // 收获植物 - 修改：使用当前植物的成长值
+            harvestPlant() {
+                const plant = plants[this.currentPlant];
+                const growthTime = plant.growthTime;
+                const currentGrowth = this.getCurrentPlantGrowth();
+                
+                // 计算可以收获的植物数量
+                const harvestCount = Math.floor(currentGrowth / growthTime);
+                
+                if (harvestCount > 0) {
+                    // 收获植物
+                    for (let i = 0; i < harvestCount; i++) {
+                        // 随机决定品质
+                        const quality = this.getRandomQuality();
+                        let displayName = plant.name;
+                        
+                        // 根据品质调整名称
+                        if (quality === 'super') {
+                            displayName = `超级${plant.name}`;
+                        } else if (quality === 'rare') {
+                            displayName = `稀有${plant.name}`;
+                        }
+                        
+                        const newPlant = {
+                            id: Date.now() + Math.random(),
+                            type: this.currentPlant,
+                            name: displayName,
+                            originalName: plant.name,
+                            icon: plant.icon,
+                            color: plant.color,
+                            date: new Date().toLocaleDateString(),
+                            growth: growthTime,
+                            quality: quality
+                        };
+                        this.collection.push(newPlant);
+                        
+                        // 显示品质通知
+                        if (quality === 'super') {
+                            this.showNotification(`🎉 恭喜！收获了一个超级${plant.name}！`);
+                        } else if (quality === 'rare') {
+                            this.showNotification(`✨ 太棒了！收获了一个稀有${plant.name}！`);
+                        }
+                    }
+                    
+                    // 更新成长值（保留余数）
+                    this.setCurrentPlantGrowth(currentGrowth % growthTime);
+                    
+                    // 更新显示
+                    this.updatePlantDisplay();
+                    this.renderCollection();
+                    
+                    // 保存数据
+                    this.saveToStorage();
+                    
+                    // 显示通知
+                    this.showNotification(`成功收获${harvestCount}个${plant.name} ${plant.icon}！已放入收藏柜。`);
+                } else {
+                    this.showNotification(`${plant.name}还未成熟，无法收获！`);
+                }
+            },
+            
+            // 渲染收藏柜
+            renderCollection() {
+                this.elements.collectionGrid.innerHTML = '';
+                
+                this.collection.forEach((plant, index) => {
+                    const plantElement = document.createElement('div');
+                    plantElement.className = 'collection-item';
+                    plantElement.title = `${plant.name}\n收获于: ${plant.date}`;
+                    plantElement.style.background = plant.color;
+                    
+                    // 根据品质设置文字样式
+                    const qualityClass = `quality-${plant.quality}`;
+                    
+                    plantElement.innerHTML = `
+                        <div class="collection-icon">${plant.icon}</div>
+                        <div class="${qualityClass}">${plant.name}</div>
+                    `;
+                    this.elements.collectionGrid.appendChild(plantElement);
+                });
+            },
+            
+            // 显示通知
+            showNotification(message) {
+                this.elements.notification.textContent = message;
+                this.elements.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.elements.notification.classList.remove('show');
+                }, 3000);
+            },
+            
+            // 显示托盘通知
+            showTrayNotification() {
+                this.elements.trayNotification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.elements.trayNotification.classList.remove('show');
+                }, 3000);
+            },
+            
+            // 添加历史记录
+            addToHistory(taskName) {
+                const now = new Date();
+                const record = {
+                    task: taskName,
+                    date: now.toLocaleDateString(),
+                    time: now.toLocaleTimeString(),
+                    timestamp: now.getTime()
+                };
+                
+                this.history.unshift(record);
+                
+                // 限制历史记录数量
+                if (this.history.length > 50) {
+                    this.history = this.history.slice(0, 50);
+                }
+                
+                this.saveToStorage();
+                this.renderHistory();
+                
+                // 更新计数
+                this.count++;
+                this.updateCountDisplay();
+                this.saveToStorage();
+            },
+            
+            // 渲染历史记录
+            renderHistory() {
+                const historyList = this.elements.historyList;
+                
+                if (this.history.length === 0) {
+                    historyList.innerHTML = '<div class="empty-history">暂无历史记录，完成番茄钟后将会显示在这里</div>';
+                    return;
+                }
+                
+                historyList.innerHTML = '';
+                
+                this.history.forEach(record => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-task">${record.task}</div>
+                        <div>
+                            <div class="history-time">${record.time}</div>
+                            <div class="history-date">${record.date}</div>
+                        </div>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            },
+            
+            // 清空历史记录 - 修改：同时清空今日完成番茄钟个数
+            clearHistory() {
+                if (confirm('确定要清空所有历史记录和今日番茄钟计数吗？此操作不可撤销。')) {
+                    this.history = [];
+                    this.count = 0; // 清空番茄钟计数
+                    this.updateCountDisplay();
+                    this.saveToStorage();
+                    this.renderHistory();
+                    this.showNotification('历史记录和番茄钟计数已清空');
+                }
+            },
+
+            // 添加计划
+            addPlan() {
+                const planText = this.elements.planInput.value.trim();
+                if (planText) {
+                    const newPlan = {
+                        id: Date.now() + Math.random(),
+                        text: planText,
+                        completed: false,
+                        createdAt: new Date().toLocaleString()
+                    };
+                    
+                    this.plans.unshift(newPlan);
+                    this.elements.planInput.value = '';
+                    this.renderPlans();
+                    this.savePlans();
+                    this.showNotification('计划已添加！');
+                }
+            },
+
+            // 渲染计划列表
+            renderPlans() {
+                const planList = this.elements.planList;
+                
+                if (this.plans.length === 0) {
+                    planList.innerHTML = '<div class="empty-plan">暂无计划，添加您的学习计划</div>';
+                    return;
+                }
+                
+                planList.innerHTML = '';
+                
+                this.plans.forEach(plan => {
+                    const planItem = document.createElement('div');
+                    planItem.className = 'plan-item';
+                    planItem.innerHTML = `
+                        <div class="plan-content">
+                            <input type="checkbox" class="plan-checkbox" ${plan.completed ? 'checked' : ''} 
+                                   data-id="${plan.id}">
+                            <div class="plan-text ${plan.completed ? 'completed' : ''}">${plan.text}</div>
+                        </div>
+                        <div class="plan-actions">
+                            <button class="plan-delete" data-id="${plan.id}">删除</button>
+                        </div>
+                    `;
+                    planList.appendChild(planItem);
+                });
+                
+                // 绑定计划项事件
+                this.bindPlanEvents();
+            },
+
+            // 绑定计划项事件
+            bindPlanEvents() {
+                // 复选框事件
+                const checkboxes = this.elements.planList.querySelectorAll('.plan-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        const planId = e.target.getAttribute('data-id');
+                        this.togglePlanComplete(planId);
+                    });
+                });
+                
+                // 删除按钮事件
+                const deleteButtons = this.elements.planList.querySelectorAll('.plan-delete');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const planId = e.target.getAttribute('data-id');
+                        this.deletePlan(planId);
+                    });
+                });
+            },
+
+            // 切换计划完成状态
+            togglePlanComplete(planId) {
+                const plan = this.plans.find(p => p.id == planId);
+                if (plan) {
+                    plan.completed = !plan.completed;
+                    this.renderPlans();
+                    this.savePlans();
+                }
+            },
+
+            // 删除计划
+            deletePlan(planId) {
+                if (confirm('确定要删除这个计划吗？')) {
+                    this.plans = this.plans.filter(p => p.id != planId);
+                    this.renderPlans();
+                    this.savePlans();
+                    this.showNotification('计划已删除');
+                }
+            },
+            
+            // 打开设置面板
+            openSettings() {
+                // 暂停计时器
+                if (this.isRunning) {
+                    this.toggleTimer();
+                }
+                
+                // 显示设置面板和遮罩层
+                this.elements.settingsPanel.style.display = 'block';
+                this.elements.overlay.style.display = 'block';
+            },
+            
+            // 关闭设置面板
+            closeSettings() {
+                // 恢复原始值
+                this.elements.modeA_duration.value = this.modeSettings.A.duration;
+                this.elements.modeB_duration.value = this.modeSettings.B.duration;
+                this.elements.modeB_count.value = this.modeSettings.B.count;
+                this.elements.modeB_break.value = this.modeSettings.B.break;
+                this.elements.modeC_count.value = this.modeSettings.C.count;
+                this.elements.modeC_durations.value = this.modeSettings.C.durations.join(',');
+                this.elements.modeC_breaks.value = this.modeSettings.C.breaks.join(',');
+                
+                // 恢复模式标签
+                this.switchModeTab(this.currentMode);
+                
+                // 隐藏设置面板
+                this.elements.settingsPanel.style.display = 'none';
+                this.elements.overlay.style.display = 'none';
+            },
+            
+            // 保存设置
+            saveSettings() {
+                // 获取当前模式
+                let activeMode = 'A';
+                this.elements.modeTabs.forEach(tab => {
+                    if (tab.classList.contains('active')) {
+                        activeMode = tab.getAttribute('data-mode');
+                    }
+                });
+                
+                // 验证并保存设置
+                try {
+                    // 模式A
+                    const modeA_duration = parseInt(this.elements.modeA_duration.value);
+                    if (isNaN(modeA_duration) || modeA_duration <= 0) {
+                        throw new Error('模式A: 请输入有效的番茄钟时长');
+                    }
+                    this.modeSettings.A.duration = modeA_duration;
+                    
+                    // 模式B
+                    const modeB_duration = parseInt(this.elements.modeB_duration.value);
+                    const modeB_count = parseInt(this.elements.modeB_count.value);
+                    const modeB_break = parseInt(this.elements.modeB_break.value);
+                    
+                    if (isNaN(modeB_duration) || modeB_duration <= 0) {
+                        throw new Error('模式B: 请输入有效的番茄钟时长');
+                    }
+                    if (isNaN(modeB_count) || modeB_count <= 0) {
+                        throw new Error('模式B: 请输入有效的番茄钟个数');
+                    }
+                    if (isNaN(modeB_break) || modeB_break < 0) {
+                        throw new Error('模式B: 请输入有效的休息时间');
+                    }
+                    
+                    this.modeSettings.B.duration = modeB_duration;
+                    this.modeSettings.B.count = modeB_count;
+                    this.modeSettings.B.break = modeB_break;
+                    
+                    // 模式C
+                    const modeC_count = parseInt(this.elements.modeC_count.value);
+                    const modeC_durations = this.elements.modeC_durations.value.split(',').map(x => parseInt(x.trim()));
+                    const modeC_breaks = this.elements.modeC_breaks.value.split(',').map(x => parseInt(x.trim()));
+                    
+                    if (isNaN(modeC_count) || modeC_count <= 0) {
+                        throw new Error('模式C: 请输入有效的番茄钟个数');
+                    }
+                    if (modeC_durations.length !== modeC_count || modeC_durations.some(x => isNaN(x) || x <= 0)) {
+                        throw new Error('模式C: 请输入有效的番茄钟时长');
+                    }
+                    if (modeC_breaks.length !== modeC_count - 1 || modeC_breaks.some(x => isNaN(x) || x < 0)) {
+                        throw new Error('模式C: 请输入有效的休息时间');
+                    }
+                    
+                    this.modeSettings.C.count = modeC_count;
+                    this.modeSettings.C.durations = modeC_durations;
+                    this.modeSettings.C.breaks = modeC_breaks;
+                    
+                    // 更新当前模式
+                    this.currentMode = activeMode;
+                    
+                    // 重置计时器以应用新设置
+                    this.resetTimer();
+                    
+                    // 保存到本地存储
+                    this.saveToStorage();
+                    
+                    // 隐藏设置面板
+                    this.elements.settingsPanel.style.display = 'none';
+                    this.elements.overlay.style.display = 'none';
+                    
+                    this.showNotification('设置已保存！');
+                } catch (error) {
+                    alert(error.message);
+                }
+            },
+            
+            // 开始/暂停计时器
+            toggleTimer() {
+                if (!this.isRunning) {
+                    // 开始计时
+                    this.isRunning = true;
+                    this.elements.startPauseBtn.textContent = '暂停';
+                    this.elements.startPauseBtn.style.background = 'linear-gradient(135deg, #f093fb, #f5576c)';
+                    
+                    this.timerId = setInterval(() => {
+                        this.currentTime--;
+                        this.currentSessionElapsed++;
+                        
+                        this.updateDisplay();
+                        this.updatePetStatus(); // 每秒更新桌宠倒计时
+                        
+                        // 计算当前植物进度
+                        const plant = plants[this.currentPlant];
+                        const currentGrowth = this.getCurrentPlantGrowth();
+                        let tempGrowth = currentGrowth;
+                        if (this.isRunning && this.isWorkSession) {
+                            tempGrowth += this.currentSessionElapsed / 60;
+                        }
+                        const currentPercent = Math.min(100, (tempGrowth / plant.growthTime) * 100);
+                        
+                        // 只有当植物进度变化超过1%或者每10秒强制更新时，才更新植物图片
+                        if (Math.abs(currentPercent - this.lastPlantPercent) >= 1 || this.currentSessionElapsed % 10 === 0) {
+                            this.updatePlantDisplay();
+                            this.lastPlantPercent = currentPercent;
+                        }
+                        
+                        if (this.currentTime < 0) {
+                            clearInterval(this.timerId);
+                            this.isRunning = false;
+                            this.switchSession();
+                            
+                            // 自动开始下一个会话
+                            if (this.currentMode !== 'A') {
+                                setTimeout(() => {
+                                    this.toggleTimer();
+                                }, 1000);
+                            }
+                        }
+                    }, 1000);
+                } else {
+                    // 暂停计时
+                    this.isRunning = false;
+                    this.elements.startPauseBtn.textContent = '继续';
+                    this.elements.startPauseBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                    clearInterval(this.timerId);
+                    
+                    // 暂停时也更新植物显示和桌宠状态
+                    this.updatePlantDisplay();
+                    this.updatePetStatus();
+                }
+                this.saveToStorage();
+            },
+            
+            // 重置计时器
+            resetTimer() {
+                this.isRunning = false;
+                clearInterval(this.timerId);
+                this.elements.startPauseBtn.textContent = '开始专注';
+                this.elements.startPauseBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                
+                // 重置会话状态和累计时间（不保存到植物成长）
+                this.isWorkSession = true;
+                this.currentSession = 1;
+                this.currentBreak = 0;
+                this.currentSessionElapsed = 0; // 重置累计时间，不保存到植物成长
+                
+                // 根据当前模式设置时间
+                switch(this.currentMode) {
+                    case 'A':
+                        this.currentTime = this.modeSettings.A.duration * 60;
+                        break;
+                    case 'B':
+                        this.currentTime = this.modeSettings.B.duration * 60;
+                        break;
+                    case 'C':
+                        this.currentTime = this.modeSettings.C.durations[0] * 60;
+                        break;
+                    default:
+                        this.currentTime = 25 * 60;
+                }
+                
+                // 更新植物显示为永久成长值（丢弃临时进度）
+                this.updatePlantDisplay();
+                
+                this.updateStatus();
+                this.updateDisplay();
+                this.updateProgressIndicator();
+                this.updatePetStatus();
+                this.saveToStorage();
+            },
+
+            // 更新桌宠状态 - 修复版本，使用临时进度
+            updatePetStatus() {
+                const plant = plants[this.currentPlant];
+                const currentGrowth = this.getCurrentPlantGrowth();
+                const growthTime = plant.growthTime;
+                
+                // 计算临时成长值：永久成长值 + 当前番茄钟已进行的时间（分钟）
+                let tempGrowth = currentGrowth;
+                if (this.isRunning && this.isWorkSession) {
+                    // 当前番茄钟已进行的时间（秒）转换为分钟
+                    tempGrowth += this.currentSessionElapsed / 60;
+                }
+                
+                const percent = Math.min(100, (tempGrowth / growthTime) * 100);
+                
+                const petData = {
+                    timer: this.elements.timerDisplay.textContent, // 这个会每秒更新
+                    plantType: this.currentPlant,
+                    plantName: plant.name,
+                    growthPercent: percent,
+                    isWorking: this.isWorkSession,
+                    plantColor: plant.color,
+                    fruitColor: plant.fruitColor
+                };
+                
+                // 发送到主进程，再转发到桌宠窗口
+                if (window.require) {
+                    try {
+                        const { ipcRenderer } = window.require('electron');
+                        ipcRenderer.send('update-pet-status', petData);
+                    } catch (error) {
+                        console.log('桌宠通信暂时不可用');
+                    }
+                }
+            }
+        };
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            tomatoTimer.init();
+        });
+    </script>
+</body>
+</html>

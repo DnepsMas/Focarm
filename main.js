@@ -153,7 +153,7 @@ function createPetWindow() {
 function showTrayNotification() {
   if (Notification.isSupported()) {
     const trayNotification = new Notification({
-      title: '番茄钟++',
+      title: '专注果园',
       body: '番茄钟已收入托盘，程序继续在后台运行',
       icon: path.join(__dirname, 'assets', 'icon.png')
     });
@@ -178,7 +178,7 @@ function createTray() {
   const iconPath = path.join(__dirname, 'assests', 'icon.png');
   tray = new Tray(iconPath);
   
-  tray.setToolTip('番茄钟++\n点击显示/隐藏窗口');
+  tray.setToolTip('专注果园\n点击显示/隐藏窗口');
   
   // 更新托盘菜单
   updateTrayMenu();

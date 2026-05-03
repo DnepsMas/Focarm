@@ -16,23 +16,22 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-  "appId": "com.yourcompany.yourapp",
-  "productName": "YourApp",
-  "directories": {
-    "output": "dist"
-  },
-  "files": [
-    "main.js",
-    "index.html",
-    "assets/**/*",
-    "node_modules/**/*"
-  ],
-  "win": {
-    "target": "nsis"
-  },
-  "android": {
-    "target": "apk", 
-    "icon": "assets/android-icon.png" 
-  }
+    "appId": "com.yourcompany.yourapp",
+    "productName": "专注果园",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "pet.html",
+      "assests/**/*",
+      "images/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assests/icon.ico"
+    }
   }
 }
